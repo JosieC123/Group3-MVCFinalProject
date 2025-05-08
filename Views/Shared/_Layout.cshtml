@@ -61,9 +61,17 @@
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" asp-controller="Employee" asp-action="Login"><i class="bi bi-door-open"></i> Login</a></li>
                         <li><a class="dropdown-item" asp-controller="Employee" asp-action="Logout"><i class="bi bi-door-closed"></i> Logout</a></li>
+                        @* Employee Product list *@
+                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        {
+                            if (User.IsInRole("northwind-employee")){
+                                <li><a class="dropdown-item" asp-controller="EmployeeProduct" asp-action="Category"><i class="bi bi-list"></i> Browse Categories</a></li>
+                            }
+                        }
                     </ul>
                 </li>
             </ul>
+            @* regular Login in *@
             @if (User?.Identity?.IsAuthenticated ?? false)
             {
               <a class="nav-link d-flex" asp-controller="Account" asp-action="Logout"><i class="bi bi-door-closed"></i> Sign Out</a>

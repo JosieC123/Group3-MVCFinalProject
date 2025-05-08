@@ -79,3 +79,15 @@ body {
 #product_rows tr {
   cursor: pointer;
 }
+
+/*Added css for tr's*/
+.out-of-stock {
+    font-weight: bold;
+}
+tr.out-of-stock td {
+background-color: #f8d7da;
+}
+tr.reorder td.reorder {
+    background-color: #fff3cd;
+    font-weight: bold;
+}

@@ -8,6 +8,46 @@ document.getElementById("CategoryId").addEventListener("change", (e) => {
 document.getElementById('Discontinued').addEventListener("change", (e) => {
   fetchProducts();
 });
+document.getElementById('OutOfStock').addEventListener("change", (e) => {
+  document.querySelectorAll('.product').forEach(function(el) {
+    if (e.target.checked) {
+      if (el.dataset['stock'] == 0) {
+        el.style.display = 'table-row';
+      } else {
+        el.style.display = 'none';
+      }
+    } else {
+      el.style.display = 'table-row';
+    }
+  });
+});
+
+document.getElementById('BelowReorder').addEventListener("change", (e) => {
+  document.querySelectorAll('.product').forEach(function(el) {
+    if (e.target.checked) {
+      if (el.dataset['diff'] < 0) {
+        el.style.display = 'table-row';
+      } else {
+        el.style.display = 'none';
+      }
+    } else {
+      el.style.display = 'table-row';
+    }
+  });
+});
+document.getElementById('filterPrice').addEventListener('click', () => {
+  const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+  const maxPrice = parseFloat(document.getElementById('maxPrice').value) || Infinity;
+
+  document.querySelectorAll('.product').forEach((el) => {
+      const price = parseFloat(el.dataset['price']);
+      if (price >= minPrice && price <= maxPrice) {
+          el.style.display = 'table-row';
+      } else {
+          el.style.display = 'none';
+      }
+  });
+});
 // delegated event listener
 document.getElementById('product_rows').addEventListener("click", (e) => {
   p = e.target.parentElement;
@@ -44,16 +84,23 @@ const numberWithCommas = x => x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 async function fetchProducts() {
   const id = document.getElementById('product_rows').dataset['id'];
   const discontinued = document.getElementById('Discontinued').checked ? "" : "/discontinued/false";
-  const { data: fetchedProducts } = await axios.get(`../../api/category/${id}/product${discontinued}`);
-
+  //const outOfStock = document.getElementById('OutOfStock').checked ? "/unitsinstock/0" : "";
+  //const belowReorder = document.getElementById('BelowReorder').checked ? "" : "?unitsinstock<reorderlevel";
+  const url = `../../api/category/${id}/product${discontinued}`;
+  const { data: fetchedProducts } = await axios.get(url);
   let product_rows = "";
+  console.log(fetchedProducts);
   fetchedProducts.map(product => {
     const css = product.discontinued ? " discontinued" : "";
+    const diff = product.unitsInStock - product.reorderLevel;
+    const outOfStockCss = product.unitsInStock === 0 ? " out-of-stock" : "";
+    const reorderCss = (diff < 0) && product.unitsInStock != 0 ? " reorder" : "";
     product_rows += 
-      `<tr class="product${css}" data-id="${product.productId}" data-name="${product.productName}" data-price="${product.unitPrice}">
+      `<tr class="product${css}${outOfStockCss}${reorderCss}" data-diff="${diff}" data-stock=${product.unitsInStock} data-id="${product.productId}" data-name="${product.productName}" data-price="${product.unitPrice}">
         <td>${product.productName}</td>
         <td class="text-end">${product.unitPrice.toFixed(2)}</td>
-        <td class="text-end">${product.unitsInStock}</td>
+        <td class="text-end reorder">${product.unitsInStock}</td>
+        <td class="text-end">${product.reorderLevel}</td>
       </tr>`;
   });
   document.getElementById('product_rows').innerHTML = product_rows;
